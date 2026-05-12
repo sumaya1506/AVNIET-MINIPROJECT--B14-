@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PlaceIQ — Smart Placement System</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      background:
+        radial-gradient(ellipse 70% 60% at 15% 20%, rgba(0,200,255,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 85% 75%, rgba(123,94,167,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0,255,179,0.04) 0%, transparent 60%),
+        var(--bg-base);
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border: 1px solid rgba(0,200,255,0.25);
+      border-radius: 20px; background: rgba(0,200,255,0.06);
+      font-size: 0.78rem; color: var(--accent); font-weight: 600;
+      letter-spacing: 0.05em; margin-bottom: 24px;
+      animation: fadeIn 0.6s ease both;
+    }
+    .hero-badge::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); animation: pulse 2s infinite;
+    }
+    .hero-title {
+      font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: 800;
+      line-height: 1.1; margin-bottom: 20px;
+      animation: fadeIn 0.6s 0.1s ease both; max-width: 720px;
+    }
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, var(--accent), var(--accent-3));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--text-secondary); max-width: 520px;
+      margin: 0 auto 40px; animation: fadeIn 0.6s 0.2s ease both;
+    }
+    .hero-cta {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+      animation: fadeIn 0.6s 0.3s ease both; margin-bottom: 60px;
+    }
+    .role-cards {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 16px; max-width: 840px; width: 100%;
+      animation: fadeIn 0.7s 0.4s ease both;
+    }
+    .role-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 24px;
+      text-align: center; cursor: pointer; transition: all var(--transition);
+      text-decoration: none; color: inherit; display: block;
+    }
+    .role-card:hover {
+      transform: translateY(-6px); border-color: var(--card-accent, var(--accent));
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    }
+    .role-card .role-icon {
+      width: 64px; height: 64px; border-radius: 18px; display: grid;
+      place-items: center; font-size: 2rem; margin: 0 auto 16px;
+      background: var(--icon-bg, rgba(0,200,255,0.1));
+    }
+    .role-card h3 { font-size: 1.1rem; margin-bottom: 8px; }
+    .role-card p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; }
+    .role-card-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 16px; font-size: 0.82rem; font-weight: 600;
+      color: var(--card-accent, var(--accent));
+    }
+    .stats-bar {
+      display: flex; gap: 40px; justify-content: center;
+      flex-wrap: wrap; margin-top: 56px; animation: fadeIn 0.7s 0.5s ease both;
+    }
+    .stat-item { text-align: center; }
+    .stat-item .num { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--accent); }
+    .stat-item .lbl { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+    @media (max-width: 700px) {
+      .role-cards { grid-template-columns: 1fr; }
+      .hero-cta { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div class="hero-badge">✦ AI-Powered Campus Placement Platform</div>
+    <h1 class="hero-title">
+      Where <span class="gradient-text">Talent Meets</span><br/>Opportunity
+    </h1>
+    <p class="hero-sub">
+      Streamline campus placements with intelligent job matching, automated workflows,
+      and real-time analytics — built for students, recruiters, and admins.
+    </p>
+    <div class="hero-cta">
+      <button class="btn btn-primary btn-lg" onclick="openAuthModal('login')">🚀 Sign In</button>
+      <button class="btn btn-secondary btn-lg" onclick="openAuthModal('register')">✦ Create Account</button>
+    </div>
+    <div class="role-cards">
+      <a href="Student.html" class="role-card" style="--card-accent:#00c8ff;--icon-bg:rgba(0,200,255,0.1);">
+        <div class="role-icon">🎓</div>
+        <h3>Students</h3>
+        <p>Browse jobs, get AI-powered recommendations, track applications and build your profile.</p>
+        <span class="role-card-btn">Enter Portal →</span>
+      </a>
+      <a href="Recruiter.html" class="role-card" style="--card-accent:#7b5ea7;--icon-bg:rgba(123,94,167,0.12);">
+        <div class="role-icon">🏢</div>
+        <h3>Recruiters</h3>
+        <p>Post jobs, filter candidates by skills & CGPA, manage shortlists and send offers.</p>
+        <span class="role-card-btn">Enter Portal →</span>
+      </a>
+      <a href="Admin.html" class="role-card" style="--card-accent:#00ffb3;--icon-bg:rgba(0,255,179,0.08);">
+        <div class="role-icon">⚙️</div>
+        <h3>Admin</h3>
+        <p>Full system oversight: analytics, placement reports, user management and charts.</p>
+        <span class="role-card-btn">Enter Portal →</span>
+      </a>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="num">500+</div><div class="lbl">Students Placed</div></div>
+      <div class="stat-item"><div class="num">120+</div><div class="lbl">Companies</div></div>
+      <div class="stat-item"><div class="num">94%</div><div class="lbl">Satisfaction Rate</div></div>
+      <div class="stat-item"><div class="num">48h</div><div class="lbl">Avg. Response Time</div></div>
+    </div>
+  </div>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal" style="max-width:460px;">
+      <div class="modal-header">
+        <div class="logo-mark" style="gap:10px;display:flex;align-items:center;">
+          <div class="logo-icon" style="width:36px;height:36px;font-size:16px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;">🎓</div>
+          <div><div class="logo-text">PlaceIQ</div></div>
+        </div>
+        <button class="modal-close" onclick="closeModal('authModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Tabs -->
+        <div class="tabs" id="authTabs" style="width:100%;display:grid;grid-template-columns:1fr 1fr;margin-bottom:24px;">
+          <button class="tab-btn active" onclick="switchTab('login')">Sign In</button>
+          <button class="tab-btn" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- Role Selector (hidden during forgot flow) -->
+        <div class="role-selector" id="roleSelector">
+          <button class="role-btn active" onclick="selectRole('student',this)"><span class="emoji">🎓</span>Student</button>
+          <button class="role-btn" onclick="selectRole('recruiter',this)"><span class="emoji">🏢</span>Recruiter</button>
+          <button class="role-btn" onclick="selectRole('admin',this)"><span class="emoji">⚙️</span>Admin</button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="loginForm">
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="loginEmail" class="form-control" placeholder="you@example.com"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" id="loginPassword" class="form-control" placeholder="••••••••"/>
+          </div>
+          <div style="text-align:right;margin-bottom:16px;">
+            <!-- FIX: Use event.preventDefault() to avoid anchor default -->
+            <a href="#" onclick="event.preventDefault();switchForgot()" style="font-size:0.82rem;color:var(--accent);text-decoration:none;">Forgot password?</a>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="handleLogin()" id="loginBtn">Sign In</button>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <div id="registerForm" style="display:none;">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="regName" class="form-control" placeholder="Your full name"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="regEmail" class="form-control" placeholder="you@example.com"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" id="regPassword" class="form-control" placeholder="Min 6 characters"/>
+          </div>
+          <div id="recruiterExtra" style="display:none;">
+            <div class="form-group">
+              <label class="form-label">Company Name</label>
+              <input type="text" id="regCompany" class="form-control" placeholder="e.g. Google, TCS"/>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="handleRegister()" id="registerBtn">Create Account</button>
+        </div>
+
+        <!-- FORGOT PASSWORD FORM -->
+        <div id="forgotForm" style="display:none;">
+          <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:16px;">Enter your email and we'll send a reset link.</p>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="forgotEmail" class="form-control" placeholder="you@example.com"/>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="handleForgot()">Send Reset Link</button>
+          <button class="btn btn-ghost btn-full" onclick="switchTab('login')" style="margin-top:8px;">← Back to Login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    let currentRole = 'student';
+    let currentTab  = 'login';
+
+    // FIX: Redirect already-logged-in users; uses lowercase role safely
+    window.addEventListener('DOMContentLoaded', () => {
+      const token = API.getToken();
+      const role  = API.getRole();
+      if (token && role) {
+        const roleName = role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+        window.location.href = roleName + '.html';
+      }
+    });
+
+    function openAuthModal(tab) {
+      switchTab(tab);
+      openModal('authModal');
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('loginForm').style.display    = tab === 'login'    ? 'block' : 'none';
+      document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+      document.getElementById('forgotForm').style.display   = 'none';
+      // FIX: Show roleSelector again when switching back to login/register
+      document.getElementById('roleSelector').style.display = 'grid';
+
+      document.querySelectorAll('#authTabs .tab-btn').forEach((b, i) => {
+        b.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+      });
+    }
+
+    // FIX: Hide roleSelector during forgot-password flow (was staying visible)
+    function switchForgot() {
+      document.getElementById('loginForm').style.display   = 'none';
+      document.getElementById('forgotForm').style.display  = 'block';
+      document.getElementById('roleSelector').style.display = 'none';
+    }
+
+    function selectRole(role, el) {
+      currentRole = role;
+      document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
+      const recruiterExtra = document.getElementById('recruiterExtra');
+      if (recruiterExtra) recruiterExtra.style.display = role === 'recruiter' ? 'block' : 'none';
+    }
+
+    async function handleLogin() {
+      const btn      = document.getElementById('loginBtn');
+      const email    = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      if (!email || !password) return toast('Please fill all fields', 'error');
+
+      btn.innerHTML = '<div class="spinner"></div> Signing in…';
+      btn.disabled  = true;
+
+      try {
+        const data = await API.post('/auth/login', { email, password, role: currentRole });
+        API.setAuth(data.token, data.user, data.role);
+        toast('Welcome back, ' + data.user.name + '!', 'success');
+        const roleName = data.role.charAt(0).toUpperCase() + data.role.slice(1).toLowerCase();
+        setTimeout(() => { window.location.href = roleName + '.html'; }, 800);
+      } catch (err) {
+        toast(err.message, 'error');
+        btn.innerHTML = 'Sign In';
+        btn.disabled  = false;
+      }
+    }
+
+    async function handleRegister() {
+      const btn      = document.getElementById('registerBtn');
+      const name     = document.getElementById('regName').value.trim();
+      const email    = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+
+      if (!name || !email || !password) return toast('Please fill all fields', 'error');
+      if (password.length < 6) return toast('Password must be at least 6 characters', 'error');
+
+      const body = { name, email, password, role: currentRole };
+      if (currentRole === 'recruiter') {
+        const company = document.getElementById('regCompany').value.trim();
+        if (!company) return toast('Company name is required', 'error');
+        body.company = { name: company };
+      }
+
+      btn.innerHTML = '<div class="spinner"></div> Creating account…';
+      btn.disabled  = true;
+
+      try {
+        const data = await API.post('/auth/register', body);
+        API.setAuth(data.token, data.user, data.role);
+        toast('Account created! Welcome, ' + data.user.name, 'success');
+        const roleName = data.role.charAt(0).toUpperCase() + data.role.slice(1).toLowerCase();
+        setTimeout(() => { window.location.href = roleName + '.html'; }, 800);
+      } catch (err) {
+        toast(err.message, 'error');
+        btn.innerHTML = 'Create Account';
+        btn.disabled  = false;
+      }
+    }
+
+    async function handleForgot() {
+      const email = document.getElementById('forgotEmail').value.trim();
+      if (!email) return toast('Enter your email', 'error');
+      try {
+        await API.post('/auth/forgot-password', { email, role: currentRole });
+        toast('Reset link sent! Check your email.', 'success');
+      } catch (err) {
+        toast(err.message, 'error');
+      }
+    }
+
+    // FIX: Single keydown listener (was declared TWICE — caused double submission)
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const overlay = document.getElementById('authModal');
+      if (!overlay || !overlay.classList.contains('open')) return;
+      if (currentTab === 'login')    handleLogin();
+      else if (currentTab === 'register') handleRegister();
+    });
+  </script>
+</body>
+</html>

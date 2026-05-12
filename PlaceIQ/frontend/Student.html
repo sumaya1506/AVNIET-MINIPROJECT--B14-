@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Dashboard — PlaceIQ</title>
+  <!-- FIX: Paths use ./css/ not ../css/ (all dashboards at same level as index.html) -->
+  <link rel="stylesheet" href="./css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="./index.html" class="logo-mark">
+        <div class="logo-icon">🎓</div>
+        <div>
+          <div class="logo-text">PlaceIQ</div>
+          <div class="logo-sub">Student Portal</div>
+        </div>
+      </a>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" onclick="showPage('dashboard')"><span class="icon">🏠</span> Dashboard</button>
+      <button class="nav-item" onclick="showPage('jobs')"><span class="icon">💼</span> Browse Jobs</button>
+      <button class="nav-item" onclick="showPage('recommended')"><span class="icon">⭐</span> AI Matches</button>
+      <button class="nav-item" onclick="showPage('applications')"><span class="icon">📋</span> My Applications</button>
+      <div class="nav-section-label">Profile</div>
+      <button class="nav-item" onclick="showPage('profile')"><span class="icon">👤</span> My Profile</button>
+      <button class="nav-item" onclick="showPage('resume')"><span class="icon">📄</span> Resume</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatar">S</div>
+        <div>
+          <div class="user-name" id="userName">Student</div>
+          <div class="user-role" id="userRole">Student</div>
+        </div>
+      </div>
+      <!-- FIX: logout() is now globally defined in ui.js -->
+      <button class="btn btn-ghost btn-full" onclick="logout()" style="margin-top:8px;font-size:0.82rem;">⬅ Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <span class="page-title" id="pageTitle">Dashboard</span>
+      </div>
+      <div class="top-bar-right">
+        <div class="search-bar">
+          <span>🔍</span>
+          <input type="text" id="globalSearch" placeholder="Search jobs…" oninput="searchJobs(this.value)"/>
+        </div>
+        <div style="position:relative;">
+          <button class="btn btn-secondary btn-sm" onclick="showPage('applications')">🔔</button>
+          <span class="notif-dot" id="notifDot" style="display:none;"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- DASHBOARD PAGE -->
+      <div id="page-dashboard" class="fade-in">
+        <div id="welcomeBanner" style="margin-bottom:24px;padding:24px 28px;background:linear-gradient(135deg,rgba(0,200,255,0.12),rgba(123,94,167,0.1));border:1px solid rgba(0,200,255,0.2);border-radius:var(--radius);">
+          <h2 id="welcomeMsg">Welcome back! 👋</h2>
+          <p style="color:var(--text-secondary);margin-top:4px;font-size:0.9rem;">Here's what's happening with your placement journey.</p>
+        </div>
+        <div class="stats-grid stagger" id="studentStats">
+          <div class="stat-card" style="--stat-color:var(--accent);">
+            <div class="stat-icon">💼</div>
+            <div class="stat-value" id="stat-applied">—</div>
+            <div class="stat-label">Jobs Applied</div>
+          </div>
+          <div class="stat-card" style="--stat-color:#7b5ea7;">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-value" id="stat-shortlisted">—</div>
+            <div class="stat-label">Shortlisted</div>
+          </div>
+          <div class="stat-card" style="--stat-color:var(--success);">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value" id="stat-selected">—</div>
+            <div class="stat-label">Selected</div>
+          </div>
+          <div class="stat-card" style="--stat-color:var(--warning);">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-value" id="stat-matches">—</div>
+            <div class="stat-label">AI Matches</div>
+          </div>
+        </div>
+        <div class="grid-2" style="gap:20px;">
+          <div class="card">
+            <div class="card-header">
+              <h3>Recent Applications</h3>
+              <button class="btn btn-ghost btn-sm" onclick="showPage('applications')">View all →</button>
+            </div>
+            <div id="recentApps"><div class="empty-state"><div class="icon">📋</div><p>No applications yet</p></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3>Top AI Matches</h3>
+              <button class="btn btn-ghost btn-sm" onclick="showPage('recommended')">See all →</button>
+            </div>
+            <div id="topMatches"><div class="empty-state"><div class="icon">⭐</div><p>Update your skills to get matches</p></div></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px;">
+          <div class="card-header"><h3>Application Status Overview</h3></div>
+          <div class="chart-container"><canvas id="statusChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- BROWSE JOBS PAGE -->
+      <div id="page-jobs" class="fade-in" style="display:none;">
+        <div class="filter-bar">
+          <input type="text" class="form-control" id="jobSearch" placeholder="🔍 Search job title or company…" oninput="filterJobs()"/>
+          <select class="form-control" id="jobTypeFilter" onchange="filterJobs()">
+            <option value="">All Types</option>
+            <option>Full-time</option><option>Internship</option>
+            <option>Part-time</option><option>Remote</option>
+          </select>
+          <select class="form-control" id="jobLocationFilter" onchange="filterJobs()">
+            <option value="">All Locations</option>
+            <option>Hyderabad</option><option>Bangalore</option>
+            <option>Mumbai</option><option>Delhi</option><option>Remote</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="filterJobs()">Filter</button>
+        </div>
+        <div class="grid-auto stagger" id="jobsGrid"></div>
+        <div id="jobsEmpty" class="empty-state" style="display:none;">
+          <div class="icon">💼</div><h3>No jobs found</h3><p>Try adjusting your filters</p>
+        </div>
+      </div>
+
+      <!-- AI MATCHES PAGE -->
+      <div id="page-recommended" class="fade-in" style="display:none;">
+        <div style="margin-bottom:20px;padding:20px;background:linear-gradient(135deg,rgba(0,200,255,0.08),rgba(0,255,179,0.05));border:1px solid rgba(0,200,255,0.15);border-radius:var(--radius);">
+          <h3>🤖 AI-Powered Job Matching</h3>
+          <p style="color:var(--text-secondary);font-size:0.88rem;margin-top:4px;">Jobs scored based on how well your skills match requirements. Update your profile to improve your matches!</p>
+        </div>
+        <div class="grid-auto stagger" id="recommendedGrid"></div>
+        <div id="recommendedEmpty" class="empty-state" style="display:none;">
+          <div class="icon">🤖</div>
+          <h3>No matches yet</h3>
+          <p>Add skills to your profile to get AI-powered job recommendations</p>
+          <button class="btn btn-primary" onclick="showPage('profile')" style="margin-top:16px;">Update Profile →</button>
+        </div>
+      </div>
+
+      <!-- APPLICATIONS PAGE -->
+      <div id="page-applications" class="fade-in" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <h3>My Applications</h3>
+            <span class="badge badge-blue" id="appCount">0 jobs</span>
+          </div>
+          <div id="applicationsList"></div>
+        </div>
+      </div>
+
+      <!-- PROFILE PAGE -->
+      <div id="page-profile" class="fade-in" style="display:none;">
+        <div class="grid-2" style="gap:20px;align-items:start;">
+          <div>
+            <div class="card" style="text-align:center;margin-bottom:20px;">
+              <div style="position:relative;display:inline-block;margin-bottom:16px;">
+                <div class="user-avatar" id="profileAvatar" style="width:80px;height:80px;font-size:2rem;margin:0 auto;border:3px solid var(--accent);"></div>
+                <label for="photoInput" style="position:absolute;bottom:0;right:0;width:26px;height:26px;background:var(--accent);border-radius:50%;display:grid;place-items:center;cursor:pointer;font-size:0.75rem;color:#000;font-weight:700;">📷</label>
+                <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="previewPhoto(this)"/>
+              </div>
+              <h3 id="profileName">Loading…</h3>
+              <p style="color:var(--text-secondary);font-size:0.85rem;" id="profileEmail"></p>
+              <div id="profileSkillTags" style="margin-top:12px;"></div>
+            </div>
+            <div class="card">
+              <h3 style="margin-bottom:16px;">📄 Resume</h3>
+              <div class="upload-zone" id="resumeZone">
+                <input type="file" id="resumeInput" accept=".pdf" onchange="handleResumeSelect(this)"/>
+                <div class="upload-icon">📎</div>
+                <div class="upload-text">Drop your resume PDF here</div>
+                <div class="upload-hint">Max 5MB • PDF only</div>
+              </div>
+              <div id="resumeStatus" style="margin-top:10px;font-size:0.85rem;color:var(--text-secondary);"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-bottom:20px;">Edit Profile</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="pName" class="form-control"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input type="text" id="pPhone" class="form-control" placeholder="+91 XXXXX XXXXX"/>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">College</label>
+                <input type="text" id="pCollege" class="form-control"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Department</label>
+                <input type="text" id="pDept" class="form-control" placeholder="e.g. CSE, ECE"/>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Year</label>
+                <select id="pYear" class="form-control">
+                  <option value="">Select Year</option>
+                  <option>1st Year</option><option>2nd Year</option>
+                  <option>3rd Year</option><option>4th Year</option><option>Final Year</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">CGPA</label>
+                <input type="number" id="pCgpa" class="form-control" step="0.01" min="0" max="10" placeholder="8.5"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Skills (comma-separated)</label>
+              <input type="text" id="pSkills" class="form-control" placeholder="Java, Python, React, SQL…"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bio</label>
+              <textarea id="pBio" class="form-control" rows="3" placeholder="Brief intro about yourself…"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">LinkedIn</label>
+                <input type="text" id="pLinkedin" class="form-control" placeholder="linkedin.com/in/…"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">GitHub</label>
+                <input type="text" id="pGithub" class="form-control" placeholder="github.com/…"/>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="saveProfile()" id="saveProfileBtn">Save Profile</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESUME PAGE -->
+      <div id="page-resume" class="fade-in" style="display:none;">
+        <div class="card" style="max-width:600px;margin:0 auto;">
+          <h3 style="margin-bottom:20px;">📄 Manage Resume</h3>
+          <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:20px;">Upload a PDF resume. Recruiters can download it when reviewing your application.</p>
+          <div class="upload-zone" id="resumeZone2">
+            <input type="file" id="resumeInput2" accept=".pdf" onchange="handleResumeSelect2(this)"/>
+            <div class="upload-icon">📎</div>
+            <div class="upload-text">Click or drag resume PDF here</div>
+            <div class="upload-hint">Max 5MB • PDF only</div>
+          </div>
+          <div id="resumeStatus2" style="margin-top:16px;"></div>
+          <div id="currentResume" style="margin-top:16px;"></div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-shell -->
+
+<!-- CHATBOT -->
+<button id="chatbot-btn" title="Ask PlacementBot">🤖</button>
+<div id="chatbot-panel">
+  <div class="chatbot-header"><span>PlacementBot</span><div class="chatbot-dot"></div></div>
+  <div class="chatbot-messages" id="chatbot-messages"></div>
+  <div class="chatbot-input">
+    <input type="text" id="chatbot-input" placeholder="Ask me anything…"/>
+    <button class="btn btn-primary btn-sm" id="chatbot-send">↑</button>
+  </div>
+</div>
+
+<!-- JOB DETAIL MODAL -->
+<div class="modal-overlay" id="jobModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <h3 id="modalJobTitle">Job Details</h3>
+      <button class="modal-close" onclick="closeModal('jobModal')">✕</button>
+    </div>
+    <div class="modal-body" id="modalJobBody"></div>
+  </div>
+</div>
+
+<!-- FIX: Script paths use ./js/ (same directory level as index.html) -->
+<script src="./js/api.js"></script>
+<script src="./js/ui.js"></script>
+<script>
+  // FIX: Auth check returns false + redirects — do NOT throw on false return
+  // FIX: Auth check now in DOMContentLoaded so redirect executes cleanly
+  // FIX: loadDashboard() only called AFTER auth is confirmed
+
+  let allJobs         = [];
+  let allApplications = [];
+  let currentPage     = 'dashboard';
+
+  window.addEventListener('DOMContentLoaded', () => {
+    // FIX: requireAuth now does the redirect internally; just check the return value
+    if (!requireAuth('student')) return;
+    loadDashboard();
+  });
+
+  // ── Page switcher ──────────────────────────────────────
+  function showPage(name) {
+    document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
+    const el = document.getElementById(`page-${name}`);
+    if (el) { el.style.display = 'block'; el.classList.add('fade-in'); }
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.textContent.toLowerCase().includes(name.replace('-', ' ').toLowerCase()))
+        n.classList.add('active');
+    });
+    const titles = { dashboard:'Dashboard', jobs:'Browse Jobs', recommended:'AI Matches', applications:'My Applications', profile:'My Profile', resume:'Resume' };
+    document.getElementById('pageTitle').textContent = titles[name] || name;
+    currentPage = name;
+    if (name === 'jobs')         loadJobs();
+    else if (name === 'recommended')  loadRecommended();
+    else if (name === 'applications') loadApplications();
+    else if (name === 'profile' || name === 'resume') loadProfile();
+  }
+
+  // ── Dashboard ──────────────────────────────────────────
+  async function loadDashboard() {
+    const user = API.getUser();
+    if (user) document.getElementById('welcomeMsg').textContent = `Welcome back, ${user.name}! 👋`;
+
+    try {
+      const [appsData, recData] = await Promise.all([
+        API.get('/students/applications'),
+        API.get('/jobs/recommend').catch(() => ({ recommendations: [] }))
+      ]);
+
+      const apps = appsData.applications || [];
+      allApplications = apps;
+      const shortlisted = apps.filter(a => ['shortlisted','interview'].includes(a.status)).length;
+      const selected    = apps.filter(a => a.status === 'selected').length;
+
+      document.getElementById('stat-applied').textContent    = apps.length;
+      document.getElementById('stat-shortlisted').textContent = shortlisted;
+      document.getElementById('stat-selected').textContent   = selected;
+      document.getElementById('stat-matches').textContent    = recData.recommendations?.length || 0;
+
+      if (shortlisted > 0) document.getElementById('notifDot').style.display = 'block';
+
+      const recent = apps.slice(0, 4);
+      document.getElementById('recentApps').innerHTML = recent.length
+        ? recent.map(a => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-weight:600;font-size:0.88rem;">${a.job.title}</div>
+              <div style="font-size:0.78rem;color:var(--text-secondary);">${a.job.company?.name||''}</div>
+            </div>
+            ${statusBadge(a.status)}
+          </div>`).join('')
+        : '<div class="empty-state"><div class="icon">📋</div><p>No applications yet. <a href="#" onclick="showPage(\'jobs\')" style="color:var(--accent);">Browse jobs →</a></p></div>';
+
+      const matches = (recData.recommendations || []).slice(0, 3);
+      document.getElementById('topMatches').innerHTML = matches.length
+        ? matches.map(j => `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+            ${matchRing(j.matchScore)}
+            <div style="flex:1;">
+              <div style="font-weight:600;font-size:0.88rem;">${j.title}</div>
+              <div style="font-size:0.78rem;color:var(--text-secondary);">${j.company?.name||''}</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="applyJob('${j._id}',this)">Apply</button>
+          </div>`).join('')
+        : '<div class="empty-state"><div class="icon">⭐</div><p>Add skills to get matches</p></div>';
+
+      const counts = { applied:0, shortlisted:0, interview:0, selected:0, rejected:0 };
+      apps.forEach(a => { if (counts[a.status] !== undefined) counts[a.status]++; });
+      renderStatusChart(counts);
+    } catch (err) { console.error(err); }
+  }
+
+  function renderStatusChart(counts) {
+    const ctx = document.getElementById('statusChart');
+    if (!ctx) return;
+    if (window._statusChart) window._statusChart.destroy();
+    window._statusChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Applied','Shortlisted','Interview','Selected','Rejected'],
+        datasets: [{ data: Object.values(counts), backgroundColor: ['#00c8ff','#ffa502','#7b5ea7','#2ed573','#ff4757'], borderWidth: 0, hoverOffset: 6 }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { position:'right', labels: { color:'#8899aa', font:{size:12}, padding:16 } } }, cutout:'70%' }
+    });
+  }
+
+  // ── Jobs ───────────────────────────────────────────────
+  async function loadJobs() {
+    showSkeletons('jobsGrid', 6);
+    try {
+      const data = await API.get('/jobs');
+      allJobs = data.jobs || [];
+      renderJobs(allJobs);
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  function renderJobs(jobs) {
+    const grid  = document.getElementById('jobsGrid');
+    const empty = document.getElementById('jobsEmpty');
+    if (!jobs.length) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    grid.innerHTML = jobs.map(job => jobCard(job, false)).join('');
+  }
+
+  function filterJobs() {
+    const q    = document.getElementById('jobSearch').value.toLowerCase();
+    const type = document.getElementById('jobTypeFilter').value;
+    const loc  = document.getElementById('jobLocationFilter').value.toLowerCase();
+    const filtered = allJobs.filter(j => {
+      const matchQ = !q   || j.title.toLowerCase().includes(q) || j.company?.name?.toLowerCase().includes(q);
+      const matchT = !type || j.type === type;
+      const matchL = !loc  || j.location?.toLowerCase().includes(loc);
+      return matchQ && matchT && matchL;
+    });
+    renderJobs(filtered);
+  }
+
+  function searchJobs(q) {
+    if (currentPage !== 'jobs') showPage('jobs');
+    setTimeout(() => { document.getElementById('jobSearch').value = q; filterJobs(); }, 100);
+  }
+
+  function jobCard(job, showScore = false) {
+    const deadline   = job.deadline ? `<span class="job-meta-item">⏰ ${fmtDate(job.deadline)}</span>` : '';
+    const score      = showScore ? `<div style="flex-shrink:0;">${matchRing(job.matchScore || 0)}</div>` : '';
+    const typeColor  = { 'Full-time':'badge-blue','Internship':'badge-purple','Remote':'badge-green','Part-time':'badge-orange' };
+    // FIX: No raw JSON embedded in onclick — use data-id attribute instead
+    return `<div class="job-card" onclick="openJobDetail('${job._id}')">
+      <div class="job-card-header">
+        <div style="display:flex;gap:12px;align-items:flex-start;flex:1;">
+          <div class="company-logo">${job.company?.logo ? `<img src="http://localhost:5000${job.company.logo}">` : '🏢'}</div>
+          <div style="flex:1;">
+            <h3 style="font-size:1rem;margin-bottom:2px;">${job.title}</h3>
+            <p style="color:var(--text-secondary);font-size:0.82rem;">${job.company?.name || 'Company'}</p>
+          </div>
+        </div>
+        ${score}
+      </div>
+      <div class="job-meta">
+        <span class="badge ${typeColor[job.type]||'badge-blue'}">${job.type||'Full-time'}</span>
+        <span class="job-meta-item">📍 ${job.location||'Any'}</span>
+        <span class="job-meta-item">💰 ${fmtSalary(job.salary)}</span>
+        ${deadline}
+      </div>
+      <div style="font-size:0.82rem;color:var(--text-secondary);margin:8px 0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">
+        ${job.description||''}
+      </div>
+      <div style="margin-bottom:10px;">${renderSkillTags((job.skillsRequired||[]).slice(0,4))}</div>
+      <div class="job-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-primary btn-sm" onclick="applyJob('${job._id}',this)">Apply Now</button>
+        <button class="btn btn-secondary btn-sm" onclick="openJobDetail('${job._id}')">Details</button>
+      </div>
+    </div>`;
+  }
+
+  // ── AI Matches ─────────────────────────────────────────
+  async function loadRecommended() {
+    showSkeletons('recommendedGrid', 6);
+    try {
+      const data = await API.get('/jobs/recommend');
+      const recs = data.recommendations || [];
+      document.getElementById('recommendedGrid').innerHTML = recs.length ? recs.map(j => jobCard(j, true)).join('') : '';
+      document.getElementById('recommendedEmpty').style.display = recs.length ? 'none' : 'block';
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  // ── Applications ───────────────────────────────────────
+  async function loadApplications() {
+    document.getElementById('applicationsList').innerHTML = '<div style="text-align:center;padding:30px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+    try {
+      const data = await API.get('/students/applications');
+      const apps = data.applications || [];
+      allApplications = apps;
+      document.getElementById('appCount').textContent = `${apps.length} jobs`;
+
+      if (!apps.length) {
+        document.getElementById('applicationsList').innerHTML = '<div class="empty-state"><div class="icon">📋</div><h3>No applications yet</h3><p>Start applying to jobs!</p><button class="btn btn-primary" onclick="showPage(\'jobs\')" style="margin-top:16px;">Browse Jobs</button></div>';
+        return;
+      }
+
+      document.getElementById('applicationsList').innerHTML = apps.map(a => `
+        <div style="padding:16px 0;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:0.95rem;">${a.job.title}</div>
+              <div style="font-size:0.82rem;color:var(--text-secondary);margin-top:2px;">${a.job.company?.name||''} • ${a.job.location||'Any'}</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Applied: ${fmtDate(a.appliedAt)}</div>
+              ${a.note ? `<div style="margin-top:6px;font-size:0.82rem;color:var(--text-secondary);font-style:italic;">Note: ${a.note}</div>` : ''}
+            </div>
+            <div>${statusBadge(a.status)}</div>
+          </div>
+          <div class="status-timeline" style="margin-top:14px;">
+            ${['applied','shortlisted','interview','selected'].map(s => {
+              const steps   = ['applied','shortlisted','interview','selected'];
+              const idx     = steps.indexOf(a.status);
+              const thisIdx = steps.indexOf(s);
+              const state   = thisIdx < idx ? 'done' : thisIdx === idx ? 'current' : '';
+              const icons   = { applied:'📋', shortlisted:'⭐', interview:'🎤', selected:'✅' };
+              return `<div class="timeline-step ${state}">
+                <div class="timeline-dot">${state === 'done' || state === 'current' ? icons[s] : ''}</div>
+                <div class="timeline-label">${s.charAt(0).toUpperCase()+s.slice(1)}</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`).join('');
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  // ── Profile ────────────────────────────────────────────
+  async function loadProfile() {
+    try {
+      const data = await API.get('/students/profile');
+      const s = data.student;
+      if (!s) return;
+
+      document.getElementById('profileName').textContent  = s.name;
+      document.getElementById('profileEmail').textContent = s.email;
+      document.getElementById('profileSkillTags').innerHTML = renderSkillTags(s.skills || []);
+
+      const avatar = document.getElementById('profileAvatar');
+      if (s.profilePhoto) avatar.innerHTML = `<img src="http://localhost:5000${s.profilePhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      else avatar.textContent = (s.name||'S')[0].toUpperCase();
+
+      document.getElementById('pName').value    = s.name     || '';
+      document.getElementById('pPhone').value   = s.phone    || '';
+      document.getElementById('pCollege').value = s.college  || '';
+      document.getElementById('pDept').value    = s.department || '';
+      document.getElementById('pYear').value    = s.year     || '';
+      document.getElementById('pCgpa').value    = s.cgpa     || '';
+      document.getElementById('pSkills').value  = (s.skills||[]).join(', ');
+      document.getElementById('pBio').value     = s.bio      || '';
+      document.getElementById('pLinkedin').value = s.linkedin || '';
+      document.getElementById('pGithub').value  = s.github   || '';
+
+      const rs  = document.getElementById('resumeStatus');
+      const rs2 = document.getElementById('resumeStatus2');
+      const cr  = document.getElementById('currentResume');
+      if (s.resumeUrl) {
+        const resumeHtml = `<div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg-elevated);border-radius:var(--radius-sm);border:1px solid var(--border);">
+          <span style="font-size:1.4rem;">📎</span>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:0.88rem;">Resume uploaded</div>
+            <div style="font-size:0.78rem;color:var(--text-secondary);">PDF • Active</div>
+          </div>
+          <a href="http://localhost:5000${s.resumeUrl}" target="_blank" class="btn btn-secondary btn-sm">View</a>
+        </div>`;
+        if (rs)  rs.innerHTML  = resumeHtml;
+        if (cr)  cr.innerHTML  = resumeHtml;
+        if (rs2) rs2.innerHTML = '<span style="color:var(--success);">✅ Resume on file</span>';
+      }
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  async function saveProfile() {
+    const btn = document.getElementById('saveProfileBtn');
+    btn.innerHTML = '<div class="spinner"></div> Saving…';
+    btn.disabled  = true;
+
+    const fd = new FormData();
+    fd.append('name',       document.getElementById('pName').value);
+    fd.append('phone',      document.getElementById('pPhone').value);
+    fd.append('college',    document.getElementById('pCollege').value);
+    fd.append('department', document.getElementById('pDept').value);
+    fd.append('year',       document.getElementById('pYear').value);
+    fd.append('cgpa',       document.getElementById('pCgpa').value);
+    fd.append('bio',        document.getElementById('pBio').value);
+    fd.append('linkedin',   document.getElementById('pLinkedin').value);
+    fd.append('github',     document.getElementById('pGithub').value);
+
+    const skillsRaw = document.getElementById('pSkills').value;
+    skillsRaw.split(',').map(s => s.trim()).filter(Boolean).forEach(s => fd.append('skills[]', s));
+
+    const photoFile  = document.getElementById('photoInput').files[0];
+    if (photoFile) fd.append('photo', photoFile);
+
+    // FIX: Only append resume if user actually selected a new file
+    // Prevents clearing existing resume on re-save without selecting a file
+    const resumeFile = document.getElementById('resumeInput')?.files[0];
+    if (resumeFile) fd.append('resume', resumeFile);
+
+    try {
+      const data = await API.upload('/students/profile', fd);
+      API.setAuth(API.getToken(), data.student, 'student');
+      toast('Profile saved! ✅', 'success');
+      renderUserChip();
+      loadProfile();
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      btn.innerHTML = 'Save Profile';
+      btn.disabled  = false;
+    }
+  }
+
+  function previewPhoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('profileAvatar').innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleResumeSelect(input) {
+    const f = input.files[0];
+    if (f) document.getElementById('resumeStatus').innerHTML = `<span style="color:var(--success);">✅ ${f.name} selected — save profile to upload</span>`;
+  }
+
+  function handleResumeSelect2(input) {
+    const f = input.files[0];
+    if (f) document.getElementById('resumeStatus2').innerHTML = `<span style="color:var(--accent);">📎 ${f.name} — <button class="btn btn-primary btn-sm" onclick="uploadResumeOnly()">Upload Now</button></span>`;
+  }
+
+  async function uploadResumeOnly() {
+    const f = document.getElementById('resumeInput2').files[0];
+    if (!f) return;
+    const fd = new FormData();
+    fd.append('resume', f);
+    try {
+      await API.upload('/students/profile', fd);
+      toast('Resume uploaded! ✅', 'success');
+      loadProfile();
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  // ── Apply ──────────────────────────────────────────────
+  async function applyJob(id, btn) {
+    if (btn) { btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true; }
+    try {
+      await API.post(`/jobs/${id}/apply`, {});
+      toast('Applied successfully! 🎉', 'success');
+      loadDashboard();
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      if (btn) { btn.innerHTML = 'Apply Now'; btn.disabled = false; }
+    }
+  }
+
+  // ── Job detail modal ───────────────────────────────────
+  async function openJobDetail(id) {
+    try {
+      const data = await API.get(`/jobs/${id}`);
+      const j = data.job;
+      document.getElementById('modalJobTitle').textContent = j.title;
+      document.getElementById('modalJobBody').innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div class="company-logo" style="width:56px;height:56px;">${j.company?.logo?`<img src="http://localhost:5000${j.company.logo}">`:'🏢'}</div>
+          <div>
+            <div style="font-weight:700;font-size:1.05rem;">${j.company?.name||'Company'}</div>
+            ${j.company?.website?`<a href="${j.company.website}" target="_blank" style="font-size:0.8rem;color:var(--accent);">${j.company.website}</a>`:''}
+          </div>
+        </div>
+        <div class="job-meta" style="margin-bottom:16px;">
+          <span class="badge badge-blue">${j.type||'Full-time'}</span>
+          <span class="job-meta-item">📍 ${j.location||'Any'}</span>
+          <span class="job-meta-item">💰 ${fmtSalary(j.salary)}</span>
+          <span class="job-meta-item">👥 ${j.openings||1} opening(s)</span>
+          ${j.minCGPA?`<span class="job-meta-item">🎓 Min CGPA: ${j.minCGPA}</span>`:''}
+          ${j.deadline?`<span class="job-meta-item">⏰ Deadline: ${fmtDate(j.deadline)}</span>`:''}
+        </div>
+        <div class="divider"></div>
+        <h4 style="margin:12px 0 8px;">Description</h4>
+        <p style="font-size:0.88rem;color:var(--text-secondary);line-height:1.7;">${j.description||''}</p>
+        <h4 style="margin:16px 0 8px;">Required Skills</h4>
+        <div>${renderSkillTags(j.skillsRequired||[])}</div>
+        <button class="btn btn-primary btn-full" style="margin-top:20px;" onclick="applyJob('${j._id}',this);closeModal('jobModal');">
+          Apply Now →
+        </button>`;
+      openModal('jobModal');
+    } catch (err) { toast(err.message, 'error'); }
+  }
+</script>
+</body>
+</html>

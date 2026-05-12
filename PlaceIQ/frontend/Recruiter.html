@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recruiter Dashboard — PlaceIQ</title>
+  <link rel="stylesheet" href="./css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="./index.html" class="logo-mark">
+        <div class="logo-icon" style="background:linear-gradient(135deg,#7b5ea7,#a78bfa);">🏢</div>
+        <div>
+          <div class="logo-text">PlaceIQ</div>
+          <div class="logo-sub">Recruiter Portal</div>
+        </div>
+      </a>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Hiring</div>
+      <button class="nav-item active" onclick="showPage('dashboard')"><span class="icon">🏠</span> Dashboard</button>
+      <button class="nav-item" onclick="showPage('post-job')"><span class="icon">➕</span> Post a Job</button>
+      <button class="nav-item" onclick="showPage('my-jobs')"><span class="icon">💼</span> My Jobs</button>
+      <button class="nav-item" onclick="showPage('applicants')"><span class="icon">👥</span> Applicants</button>
+      <div class="nav-section-label">Account</div>
+      <button class="nav-item" onclick="showPage('company')"><span class="icon">🏛️</span> Company Profile</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatar" style="background:linear-gradient(135deg,#7b5ea7,#a78bfa);">R</div>
+        <div>
+          <div class="user-name" id="userName">Recruiter</div>
+          <div class="user-role" id="userRole">Recruiter</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-full" onclick="logout()" style="margin-top:8px;font-size:0.82rem;">⬅ Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <span class="page-title" id="pageTitle">Dashboard</span>
+      </div>
+      <div class="top-bar-right">
+        <button class="btn btn-primary btn-sm" onclick="showPage('post-job')">➕ Post Job</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="fade-in">
+        <div class="stats-grid stagger">
+          <div class="stat-card" style="--stat-color:#7b5ea7;"><div class="stat-icon">💼</div><div class="stat-value" id="stat-jobs">—</div><div class="stat-label">Jobs Posted</div></div>
+          <div class="stat-card" style="--stat-color:var(--accent);"><div class="stat-icon">📋</div><div class="stat-value" id="stat-applications">—</div><div class="stat-label">Total Applications</div></div>
+          <div class="stat-card" style="--stat-color:var(--warning);"><div class="stat-icon">⭐</div><div class="stat-value" id="stat-shortlisted">—</div><div class="stat-label">Shortlisted</div></div>
+          <div class="stat-card" style="--stat-color:var(--success);"><div class="stat-icon">✅</div><div class="stat-value" id="stat-hired">—</div><div class="stat-label">Hired</div></div>
+        </div>
+        <div class="grid-2" style="gap:20px;">
+          <div class="card"><div class="card-header"><h3>Applications by Job</h3></div><div class="chart-container"><canvas id="appChart"></canvas></div></div>
+          <div class="card"><div class="card-header"><h3>Hiring Funnel</h3></div><div class="chart-container"><canvas id="funnelChart"></canvas></div></div>
+        </div>
+        <div class="card" style="margin-top:20px;">
+          <div class="card-header">
+            <h3>Recent Activity</h3>
+            <button class="btn btn-ghost btn-sm" onclick="showPage('applicants')">View all →</button>
+          </div>
+          <div id="recentActivity"></div>
+        </div>
+      </div>
+
+      <!-- POST JOB -->
+      <div id="page-post-job" class="fade-in" style="display:none;">
+        <div class="card" style="max-width:720px;">
+          <h3 style="margin-bottom:24px;">Post a New Job</h3>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Job Title *</label><input type="text" id="jTitle" class="form-control" placeholder="e.g. Software Engineer"/></div>
+            <div class="form-group"><label class="form-label">Job Type *</label>
+              <select id="jType" class="form-control">
+                <option>Full-time</option><option>Part-time</option><option>Internship</option><option>Contract</option><option>Remote</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Job Description *</label><textarea id="jDesc" class="form-control" rows="5" placeholder="Describe responsibilities, requirements, perks…"></textarea></div>
+          <div class="form-group"><label class="form-label">Required Skills (comma-separated) *</label><input type="text" id="jSkills" class="form-control" placeholder="Java, Spring Boot, MySQL, REST API"/></div>
+          <div class="form-row-3">
+            <div class="form-group"><label class="form-label">Location</label><input type="text" id="jLocation" class="form-control" placeholder="Hyderabad / Remote"/></div>
+            <div class="form-group"><label class="form-label">Openings</label><input type="number" id="jOpenings" class="form-control" value="1" min="1"/></div>
+            <div class="form-group"><label class="form-label">Min CGPA</label><input type="number" id="jCgpa" class="form-control" step="0.1" min="0" max="10" placeholder="6.5"/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Min Salary (₹)</label><input type="number" id="jSalMin" class="form-control" placeholder="400000"/></div>
+            <div class="form-group"><label class="form-label">Max Salary (₹)</label><input type="number" id="jSalMax" class="form-control" placeholder="800000"/></div>
+          </div>
+          <div class="form-group"><label class="form-label">Application Deadline</label><input type="date" id="jDeadline" class="form-control"/></div>
+          <button class="btn btn-primary btn-lg btn-full" onclick="postJob()" id="postJobBtn">📢 Post Job</button>
+        </div>
+      </div>
+
+      <!-- MY JOBS -->
+      <div id="page-my-jobs" class="fade-in" style="display:none;">
+        <div id="myJobsList"></div>
+      </div>
+
+      <!-- APPLICANTS -->
+      <div id="page-applicants" class="fade-in" style="display:none;">
+        <div class="filter-bar" style="margin-bottom:20px;">
+          <select id="jobSelect" class="form-control" onchange="loadApplicantsForJob(this.value)" style="max-width:300px;">
+            <option value="">— Select a Job —</option>
+          </select>
+          <select id="statusFilter" class="form-control" onchange="filterApplicants()" style="max-width:180px;">
+            <option value="">All Status</option>
+            <option value="applied">Applied</option><option value="shortlisted">Shortlisted</option>
+            <option value="interview">Interview</option><option value="selected">Selected</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <input type="text" id="candidateSearch" class="form-control" placeholder="🔍 Search candidates…" oninput="filterApplicants()" style="max-width:220px;"/>
+        </div>
+        <div id="applicantsList"></div>
+      </div>
+
+      <!-- COMPANY PROFILE -->
+      <div id="page-company" class="fade-in" style="display:none;">
+        <div class="card" style="max-width:640px;">
+          <h3 style="margin-bottom:20px;">Company Profile</h3>
+          <div style="text-align:center;margin-bottom:24px;">
+            <div class="company-logo" style="width:80px;height:80px;font-size:2.5rem;margin:0 auto 12px;border:2px solid var(--border);" id="companyLogoPreview">🏢</div>
+            <label for="logoInput" class="btn btn-secondary btn-sm">Upload Logo</label>
+            <input type="file" id="logoInput" accept="image/*" style="display:none;" onchange="previewLogo(this)"/>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Company Name *</label><input type="text" id="cName" class="form-control"/></div>
+            <div class="form-group"><label class="form-label">Industry</label><input type="text" id="cIndustry" class="form-control" placeholder="e.g. Technology, Finance"/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Website</label><input type="text" id="cWebsite" class="form-control" placeholder="https://company.com"/></div>
+            <div class="form-group"><label class="form-label">Company Size</label>
+              <select id="cSize" class="form-control"><option>1-50</option><option>51-200</option><option>201-1000</option><option>1000+</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Location</label><input type="text" id="cLocation" class="form-control" placeholder="Hyderabad, Telangana"/></div>
+          <div class="form-group"><label class="form-label">Description</label><textarea id="cDesc" class="form-control" rows="4" placeholder="About your company…"></textarea></div>
+          <button class="btn btn-primary btn-full" onclick="saveCompany()" id="saveCompanyBtn">Save Company Profile</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CHATBOT -->
+<button id="chatbot-btn">🤖</button>
+<div id="chatbot-panel">
+  <div class="chatbot-header"><span>PlacementBot</span><div class="chatbot-dot"></div></div>
+  <div class="chatbot-messages" id="chatbot-messages"></div>
+  <div class="chatbot-input">
+    <input type="text" id="chatbot-input" placeholder="Ask me anything…"/>
+    <button class="btn btn-primary btn-sm" id="chatbot-send">↑</button>
+  </div>
+</div>
+
+<!-- APPLICANT DETAIL MODAL -->
+<div class="modal-overlay" id="applicantModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalApplicantName">Candidate</h3>
+      <button class="modal-close" onclick="closeModal('applicantModal')">✕</button>
+    </div>
+    <div class="modal-body" id="modalApplicantBody"></div>
+  </div>
+</div>
+
+<!-- FIX: Status update MODAL (replaces browser prompt() which is blocked in many contexts) -->
+<div class="modal-overlay" id="statusModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <h3>Update Applicant Status</h3>
+      <button class="modal-close" onclick="closeModal('statusModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">New Status</label>
+        <select id="statusSelect" class="form-control">
+          <option value="applied">Applied</option>
+          <option value="shortlisted">Shortlisted</option>
+          <option value="interview">Interview</option>
+          <option value="selected">Selected</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note (optional)</label>
+        <textarea id="statusNote" class="form-control" rows="2" placeholder="Any feedback or note for the candidate…"></textarea>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="confirmStatusUpdate()">Update Status</button>
+    </div>
+  </div>
+</div>
+
+<script src="./js/api.js"></script>
+<script src="./js/ui.js"></script>
+<script>
+  let myJobs               = [];
+  let currentJobApplicants = [];
+  let currentApplicantJobId = null;
+  let _updateStudentId     = '';
+
+  // FIX: Auth check in DOMContentLoaded; does NOT throw
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!requireAuth('recruiter')) return;
+    loadRecruiterDashboard();
+  });
+
+  function showPage(name) {
+    document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
+    document.getElementById(`page-${name}`).style.display = 'block';
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.textContent.toLowerCase().includes(name.replace('-', ' '))) n.classList.add('active');
+    });
+    const titles = { dashboard:'Dashboard', 'post-job':'Post a Job', 'my-jobs':'My Jobs', applicants:'Applicants', company:'Company Profile' };
+    document.getElementById('pageTitle').textContent = titles[name] || name;
+    if (name === 'my-jobs')      loadMyJobs();
+    else if (name === 'applicants')   loadApplicantsPage();
+    else if (name === 'company')      loadCompanyProfile();
+    else if (name === 'dashboard')    loadRecruiterDashboard();
+  }
+
+  async function loadRecruiterDashboard() {
+    try {
+      const data = await API.get('/recruiters/jobs');
+      myJobs = data.jobs || [];
+      let totalApps = 0, shortlisted = 0, hired = 0;
+      const jobLabels = [], jobCounts = [];
+
+      myJobs.forEach(j => {
+        totalApps   += j.applicants.length;
+        shortlisted += j.applicants.filter(a => a.status === 'shortlisted' || a.status === 'interview').length;
+        hired       += j.applicants.filter(a => a.status === 'selected').length;
+        jobLabels.push(j.title.length > 16 ? j.title.slice(0, 16) + '…' : j.title);
+        jobCounts.push(j.applicants.length);
+      });
+
+      document.getElementById('stat-jobs').textContent         = myJobs.length;
+      document.getElementById('stat-applications').textContent = totalApps;
+      document.getElementById('stat-shortlisted').textContent  = shortlisted;
+      document.getElementById('stat-hired').textContent        = hired;
+
+      const ctx1 = document.getElementById('appChart');
+      if (window._appChart) window._appChart.destroy();
+      window._appChart = new Chart(ctx1, {
+        type: 'bar',
+        data: { labels: jobLabels, datasets: [{ label:'Applications', data: jobCounts, backgroundColor:'rgba(0,200,255,0.6)', borderColor:'var(--accent)', borderWidth:1, borderRadius:6 }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,ticks:{color:'#8899aa'},grid:{color:'rgba(255,255,255,0.04)'}}, x:{ticks:{color:'#8899aa'},grid:{display:false}} } }
+      });
+
+      const iCount = myJobs.reduce((s, j) => s + j.applicants.filter(a => a.status === 'interview').length, 0);
+      const ctx2   = document.getElementById('funnelChart');
+      if (window._funnelChart) window._funnelChart.destroy();
+      window._funnelChart = new Chart(ctx2, {
+        type: 'bar',
+        data: { labels:['Applied','Shortlisted','Interview','Hired'], datasets:[{ data:[totalApps, shortlisted, iCount, hired], backgroundColor:['rgba(0,200,255,0.5)','rgba(255,165,2,0.5)','rgba(123,94,167,0.5)','rgba(46,213,115,0.5)'], borderRadius:6 }] },
+        options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{beginAtZero:true,ticks:{color:'#8899aa'},grid:{color:'rgba(255,255,255,0.04)'}}, y:{ticks:{color:'#8899aa'},grid:{display:false}} } }
+      });
+
+      const recent = [];
+      myJobs.forEach(j => j.applicants.forEach(a => recent.push({ ...a, jobTitle: j.title, jobId: j._id })));
+      recent.sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+      document.getElementById('recentActivity').innerHTML = recent.slice(0, 6).map(a => `
+        <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);">
+          <div class="user-avatar" style="width:36px;height:36px;font-size:0.85rem;background:linear-gradient(135deg,#7b5ea7,#a78bfa);">${(a.student?.name||'?')[0].toUpperCase()}</div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:0.88rem;">${a.student?.name || 'Student'}</div>
+            <div style="font-size:0.78rem;color:var(--text-secondary);">Applied for ${a.jobTitle}</div>
+          </div>
+          ${statusBadge(a.status)}
+          <div style="font-size:0.75rem;color:var(--text-muted);">${fmtDate(a.appliedAt)}</div>
+        </div>`).join('') || '<div class="empty-state"><div class="icon">📋</div><p>No applications yet</p></div>';
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  async function postJob() {
+    const btn    = document.getElementById('postJobBtn');
+    const title  = document.getElementById('jTitle').value.trim();
+    const desc   = document.getElementById('jDesc').value.trim();
+    const skills = document.getElementById('jSkills').value.split(',').map(s => s.trim()).filter(Boolean);
+    if (!title || !desc || !skills.length) return toast('Title, description and skills are required', 'error');
+
+    btn.innerHTML = '<div class="spinner"></div> Posting…';
+    btn.disabled  = true;
+    const body = {
+      title, description: desc, skillsRequired: skills,
+      type:     document.getElementById('jType').value,
+      location: document.getElementById('jLocation').value,
+      openings: Number(document.getElementById('jOpenings').value) || 1,
+      minCGPA:  Number(document.getElementById('jCgpa').value) || 0,
+      salary:   { min: Number(document.getElementById('jSalMin').value)||0, max: Number(document.getElementById('jSalMax').value)||0 },
+      deadline: document.getElementById('jDeadline').value || null
+    };
+    try {
+      await API.post('/jobs', body);
+      toast('Job posted successfully! 🎉', 'success');
+      ['jTitle','jDesc','jSkills','jLocation','jDeadline','jCgpa','jSalMin','jSalMax'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('jOpenings').value = '1';
+      showPage('my-jobs');
+    } catch (err) { toast(err.message, 'error');
+    } finally { btn.innerHTML = '📢 Post Job'; btn.disabled = false; }
+  }
+
+  async function loadMyJobs() {
+    document.getElementById('myJobsList').innerHTML = '<div style="text-align:center;padding:40px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+    try {
+      const data = await API.get('/recruiters/jobs');
+      myJobs = data.jobs || [];
+      if (!myJobs.length) {
+        document.getElementById('myJobsList').innerHTML = '<div class="empty-state"><div class="icon">💼</div><h3>No jobs posted yet</h3><button class="btn btn-primary" onclick="showPage(\'post-job\')" style="margin-top:16px;">Post First Job</button></div>';
+        return;
+      }
+      document.getElementById('myJobsList').innerHTML = myJobs.map(j => `
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+                <h3 style="font-size:1rem;">${j.title}</h3>
+                <span class="badge ${j.isActive?'badge-green':'badge-red'}">${j.isActive?'Active':'Inactive'}</span>
+              </div>
+              <div class="job-meta">
+                <span class="badge badge-blue">${j.type}</span>
+                <span class="job-meta-item">📍 ${j.location||'Any'}</span>
+                <span class="job-meta-item">👥 ${j.applicants.length} applicants</span>
+                <span class="job-meta-item">📅 Posted ${fmtDate(j.createdAt)}</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="viewJobApplicants('${j._id}')">👥 View Applicants</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteJob('${j._id}')">🗑 Delete</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;">${renderSkillTags(j.skillsRequired||[])}</div>
+        </div>`).join('');
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  async function deleteJob(id) {
+    if (!confirm('Delete this job? This cannot be undone.')) return;
+    try {
+      await API.del(`/jobs/${id}`);
+      toast('Job deleted', 'success');
+      loadMyJobs();
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  async function loadApplicantsPage() {
+    try {
+      const data = await API.get('/recruiters/jobs');
+      myJobs = data.jobs || [];
+      const sel = document.getElementById('jobSelect');
+      sel.innerHTML = '<option value="">— Select a Job —</option>' + myJobs.map(j => `<option value="${j._id}">${j.title} (${j.applicants.length})</option>`).join('');
+    } catch (err) {}
+  }
+
+  function viewJobApplicants(jobId) {
+    showPage('applicants');
+    setTimeout(() => {
+      document.getElementById('jobSelect').value = jobId;
+      loadApplicantsForJob(jobId);
+    }, 100);
+  }
+
+  async function loadApplicantsForJob(jobId) {
+    if (!jobId) { document.getElementById('applicantsList').innerHTML = ''; return; }
+    currentApplicantJobId = jobId;
+    document.getElementById('applicantsList').innerHTML = '<div style="text-align:center;padding:40px;"><div class="spinner" style="margin:0 auto;"></div></div>';
+    try {
+      const data = await API.get(`/jobs/${jobId}/applicants`);
+      currentJobApplicants = data.applicants || [];
+      renderApplicantList(currentJobApplicants);
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  function filterApplicants() {
+    const status = document.getElementById('statusFilter').value;
+    const q      = document.getElementById('candidateSearch').value.toLowerCase();
+    const filtered = currentJobApplicants.filter(a => {
+      const matchStatus = !status || a.status === status;
+      const name  = a.student?.name?.toLowerCase()  || '';
+      const email = a.student?.email?.toLowerCase() || '';
+      const matchQ = !q || name.includes(q) || email.includes(q);
+      return matchStatus && matchQ;
+    });
+    renderApplicantList(filtered);
+  }
+
+  // FIX: Applicant objects stored in a Map by index, NOT embedded in onclick as JSON
+  const _applicantCache = new Map();
+
+  function renderApplicantList(applicants) {
+    _applicantCache.clear();
+    if (!applicants.length) {
+      document.getElementById('applicantsList').innerHTML = '<div class="empty-state"><div class="icon">👥</div><h3>No candidates found</h3></div>';
+      return;
+    }
+    document.getElementById('applicantsList').innerHTML = applicants.map((a, i) => {
+      _applicantCache.set(i, a);
+      const s = a.student || {};
+      return `<div class="applicant-card">
+        <div class="user-avatar" style="width:44px;height:44px;font-size:1.1rem;background:linear-gradient(135deg,#7b5ea7,#a78bfa);">${(s.name||'?')[0].toUpperCase()}</div>
+        <div class="applicant-info">
+          <div class="applicant-name">${s.name||'Unknown'}</div>
+          <div class="applicant-meta">${s.email||''} • ${s.college||''} ${s.cgpa?`• CGPA: ${s.cgpa}`:''}</div>
+          <div style="margin-top:4px;">${renderSkillTags((s.skills||[]).slice(0,4))}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+          ${statusBadge(a.status)}
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${s.resumeUrl?`<a href="http://localhost:5000${s.resumeUrl}" target="_blank" class="btn btn-secondary btn-sm">📄 Resume</a>`:''}
+            <button class="btn btn-secondary btn-sm" onclick="openApplicantDetail(${i})">View</button>
+            <button class="btn btn-primary btn-sm" onclick="openStatusUpdate('${s._id}','${a.status}')">Update</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // FIX: Retrieves applicant from cache by index — no JSON-in-onclick
+  function openApplicantDetail(idx) {
+    const a = _applicantCache.get(idx);
+    if (!a) return;
+    const s = a.student || {};
+    document.getElementById('modalApplicantName').textContent = s.name || 'Candidate';
+    document.getElementById('modalApplicantBody').innerHTML = `
+      <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+        <div class="user-avatar" style="width:64px;height:64px;font-size:1.8rem;background:linear-gradient(135deg,#7b5ea7,#a78bfa);">${(s.name||'?')[0].toUpperCase()}</div>
+        <div>
+          <h3>${s.name||''}</h3>
+          <p style="color:var(--text-secondary);font-size:0.88rem;">${s.email||''}</p>
+          ${s.phone?`<p style="font-size:0.82rem;color:var(--text-secondary);">📞 ${s.phone}</p>`:''}
+        </div>
+      </div>
+      <div class="grid-2" style="gap:12px;margin-bottom:16px;">
+        ${s.college?`<div><span class="text-muted" style="font-size:0.75rem;">COLLEGE</span><div style="font-weight:600;font-size:0.88rem;">${s.college}</div></div>`:''}
+        ${s.department?`<div><span class="text-muted" style="font-size:0.75rem;">DEPARTMENT</span><div style="font-weight:600;font-size:0.88rem;">${s.department}</div></div>`:''}
+        ${s.cgpa?`<div><span class="text-muted" style="font-size:0.75rem;">CGPA</span><div style="font-weight:600;font-size:0.88rem;color:var(--success);">${s.cgpa}</div></div>`:''}
+        ${s.year?`<div><span class="text-muted" style="font-size:0.75rem;">YEAR</span><div style="font-weight:600;font-size:0.88rem;">${s.year}</div></div>`:''}
+      </div>
+      ${s.bio?`<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;font-style:italic;">${s.bio}</p>`:''}
+      <h4 style="margin-bottom:8px;">Skills</h4>
+      <div style="margin-bottom:16px;">${renderSkillTags(s.skills||[])}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${s.resumeUrl?`<a href="http://localhost:5000${s.resumeUrl}" target="_blank" class="btn btn-primary btn-sm">📄 Download Resume</a>`:''}
+        ${s.linkedin?`<a href="${s.linkedin}" target="_blank" class="btn btn-secondary btn-sm">💼 LinkedIn</a>`:''}
+        ${s.github?`<a href="${s.github}" target="_blank" class="btn btn-secondary btn-sm">🔗 GitHub</a>`:''}
+      </div>`;
+    openModal('applicantModal');
+  }
+
+  // FIX: Status update uses a proper modal instead of browser prompt()
+  function openStatusUpdate(studentId, currentStatus) {
+    _updateStudentId = studentId;
+    document.getElementById('statusSelect').value = currentStatus || 'applied';
+    document.getElementById('statusNote').value   = '';
+    openModal('statusModal');
+  }
+
+  async function confirmStatusUpdate() {
+    const status = document.getElementById('statusSelect').value;
+    const note   = document.getElementById('statusNote').value.trim();
+    closeModal('statusModal');
+    try {
+      await API.put(`/jobs/${currentApplicantJobId}/applicants/${_updateStudentId}`, { status, note });
+      toast(`Status updated to: ${status}`, 'success');
+      loadApplicantsForJob(currentApplicantJobId);
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  async function loadCompanyProfile() {
+    try {
+      const data = await API.get('/recruiters/profile');
+      const r = data.recruiter;
+      if (!r) return;
+      const c = r.company || {};
+      document.getElementById('cName').value     = c.name        || '';
+      document.getElementById('cIndustry').value = c.industry    || '';
+      document.getElementById('cWebsite').value  = c.website     || '';
+      document.getElementById('cLocation').value = c.location    || '';
+      document.getElementById('cDesc').value     = c.description || '';
+      if (c.size) document.getElementById('cSize').value = c.size;
+      if (c.logo) document.getElementById('companyLogoPreview').innerHTML = `<img src="http://localhost:5000${c.logo}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
+    } catch (err) {}
+  }
+
+  function previewLogo(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('companyLogoPreview').innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function saveCompany() {
+    const btn = document.getElementById('saveCompanyBtn');
+    btn.innerHTML = '<div class="spinner"></div> Saving…';
+    btn.disabled  = true;
+    const fd = new FormData();
+    fd.append('company[name]',        document.getElementById('cName').value);
+    fd.append('company[industry]',    document.getElementById('cIndustry').value);
+    fd.append('company[website]',     document.getElementById('cWebsite').value);
+    fd.append('company[size]',        document.getElementById('cSize').value);
+    fd.append('company[location]',    document.getElementById('cLocation').value);
+    fd.append('company[description]', document.getElementById('cDesc').value);
+    const logoFile = document.getElementById('logoInput').files[0];
+    if (logoFile) fd.append('logo', logoFile);
+    try {
+      await API.upload('/recruiters/profile', fd);
+      toast('Company profile saved! ✅', 'success');
+    } catch (err) { toast(err.message, 'error');
+    } finally { btn.innerHTML = 'Save Company Profile'; btn.disabled = false; }
+  }
+</script>
+</body>
+</html>
